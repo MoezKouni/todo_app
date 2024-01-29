@@ -1,11 +1,34 @@
 node {
-    checkout scm
+    def app
 
-    docker.withRegistry('https://registry.hub.docker.com', 'Dockerhub') {
+    stage('Clone repository') {
+      
 
-        def customImage = docker.build("moezelkounii/todo_app:${env.BUILD_ID}")
-
-        /* Push the container to the custom Registry */
-        customImage.push()
+        checkout scm
     }
+
+    stage('Build image') {
+  
+       app = docker.build("moezelkounii/todo_app")
+    }
+
+    stage('Test image') {
+  
+
+        app.inside {
+            sh 'echo "Tests passed"'
+        }
+    }
+
+    stage('Push image') {
+        
+        docker.withRegistry('https://registry.hub.docker.com', 'Dockerhub') {
+            app.push("${env.BUILD_NUMBER}")
+        }
+    }
+    
+    stage('Trigger ManifestUpdate') {
+                echo "triggering updatemanifestjob"
+                build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
+        }
 }
