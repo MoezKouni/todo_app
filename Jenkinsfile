@@ -9,7 +9,7 @@ node {
 
     stage('Build image') {
   
-       app = docker.build("moezelkounii/todo_app")
+       app = docker.build("moezelkounii/todo-app")
     }
 
     stage('Test image') {
